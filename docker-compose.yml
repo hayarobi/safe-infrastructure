@@ -39,7 +39,7 @@ services:
       - cgw-web
       - events-web
     environment:
-      UI_HOST: "http://host.docker.internal:3001"
+      UI_HOST: "http://host.docker.internal:3000"
 
   txs-db:
     image: postgres:14-alpine
@@ -48,6 +48,8 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - ./data/txs-db:/var/lib/postgresql/data
+    ports:
+      - "15432:5432"
     <<: *pghealthcheck
 
   cfg-db:
@@ -56,6 +58,8 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - ./data/cfg-db:/var/lib/postgresql/data
+    ports:
+      - "25432:5432"
     <<: *pghealthcheck
 
   events-db:
@@ -64,6 +68,8 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - ./data/events-db:/var/lib/postgresql/data
+    ports:
+      - "35432:5432"
     <<: *pghealthcheck
 
   cgw-db:
@@ -72,6 +78,8 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - ./data/cgw-db:/var/lib/postgresql/data
+    ports:
+      - "45432:5432"
     <<: *pghealthcheck
 
   # Safe Transaction Service
@@ -126,6 +134,8 @@ services:
       txs-worker-indexer:
         condition: service_healthy
     working_dir: /app
+    ports:
+      - "18000:8888"
     volumes:
       - nginx-shared-txs:/nginx
     command: docker/web/run_web.sh
@@ -147,6 +157,8 @@ services:
       - nginx-shared-cfg:/nginx
     env_file:
       - container_env_files/cfg.env
+    ports:
+      - "28000:8001"
     depends_on:
       cfg-db:
         condition: service_healthy
@@ -162,6 +174,8 @@ services:
     image: safeglobal/safe-client-gateway-nest:${CGW_VERSION}
     env_file:
       - container_env_files/cgw.env
+    ports:
+      - "48000:3000"
     depends_on:
       cgw-redis:
         condition: service_healthy
@@ -188,6 +202,8 @@ services:
     image: safeglobal/safe-events-service:${EVENTS_VERSION}
     env_file:
       - container_env_files/events.env
+    ports:
+      - "38000:3000"
     depends_on:
       events-db:
         condition: service_healthy
